@@ -11,10 +11,9 @@ import os
 
 
 battery = 0
-NO_OF_DAYS = 2
+NO_OF_DAYS = 7
 SITE_WITH_BATTERY_ID = (6, 166, 193, 192, 194, 210, 211, 212, 219, 220, 218, 217, 216, 215, 214, 213, 209, 208, 224,
                         226, 227, 228, 229, 230, 231, 232, 233, 234, 221, 222)
-SITE_WITH_BATTERY_ID = (228,228)
 
 FILE_DATA = []
 
@@ -39,9 +38,6 @@ def process_meter_data(data_obj, battery_capacity):
             battery_efficiency = 0
         return battery_utilization, battery_efficiency
     else:
-        print "###############################"
-        print data_obj[0].get("measurements", {})
-        print "###############################"
         return 0,0
 
 
@@ -51,8 +47,6 @@ def generate_xlsx(sol_data, utilization_data, efficieny_data, site_data):
 
     workbook = xlsxwriter.Workbook(os.path.join(BASE_DIR, 'report_data', file_name))
     cell_format = workbook.add_format()
-    # header_format = workbook.add_format()
-    # header_format.set_font_color('gray')
     cell_format.set_align('left')
 
     worksheet = workbook.add_worksheet('Parameter Wise Ranking')
