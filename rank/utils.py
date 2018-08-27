@@ -6,7 +6,8 @@ import datetime
 import operator
 import xlsxwriter
 import json
-import StringIO
+from test_ces.settings import BASE_DIR
+import os
 
 
 battery = 0
@@ -48,7 +49,7 @@ def generate_xlsx(sol_data, utilization_data, efficieny_data, site_data):
     file_name = 'RankingSheet_' + str(datetime.datetime.now()).replace(':', '-')
     file_name = file_name.split('.')[0].replace(' ', '_') + '.xlsx'
 
-    workbook = xlsxwriter.Workbook(file_name)
+    workbook = xlsxwriter.Workbook(os.path.join(BASE_DIR, 'report_data', file_name))
     cell_format = workbook.add_format()
     # header_format = workbook.add_format()
     # header_format.set_font_color('gray')
@@ -127,7 +128,7 @@ def generate_xlsx(sol_data, utilization_data, efficieny_data, site_data):
 def generate_data():
 
     data_available = False
-    with open("C:/django/myproject/rank/ranking_data.json") as f:
+    with open(os.path.join(BASE_DIR, 'rank', "ranking_data.json")) as f:
         FILE_DATA = json.load(f)
         f.close()
 
@@ -145,7 +146,8 @@ def generate_data():
         end_date = end_date.isoformat()
 
         # Open database connection
-        db = MySQLdb.connect(host="localhost", user="root", passwd="root", db="micro_proddb")
+        #db = MySQLdb.connect(host="localhost", user="root", passwd="root", db="micro_proddb")
+        db = MySQLdb.connect(host="localhost", user="root", passwd="cft6%TGB", db="micro_proddb")
 
         # prepare a cursor object using cursor() method
         cursor = db.cursor()
@@ -247,7 +249,7 @@ def generate_data():
 
         SITE_DATA = sorted(SITE_DATA, key=lambda x: float(operator.itemgetter("total_score")(x)), reverse=True)
 
-        with open('C:/django/myproject/rank/ranking_data.json', 'w') as outfile:
+        with open(os.path.join(BASE_DIR, 'rank', "ranking_data.json"), 'w') as outfile:
             data = {
                 "site_data" : SITE_DATA,
                 "solar_generation_score_list" : solar_generation_score_list,

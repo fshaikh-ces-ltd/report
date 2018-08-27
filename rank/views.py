@@ -13,6 +13,8 @@ from django.http import (
 )
 import StringIO
 from rank.utils import generate_data
+from test_ces.settings import BASE_DIR
+import os
 
 
 battery = 0
@@ -26,7 +28,7 @@ FILE_DATA = []
 def quotation(request):
     if request.method == "GET":
         file_name = generate_data()
-        excel = open(file_name, "rb")
+        excel = open(os.path.join(BASE_DIR, 'report_data', file_name), "rb")
         output = StringIO.StringIO(excel.read())
         out_content = output.getvalue()
         output.close()
