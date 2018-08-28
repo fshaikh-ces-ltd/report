@@ -6,16 +6,17 @@ import datetime
 import operator
 import xlsxwriter
 import json
-from test_ces.settings import BASE_DIR
 import os
 
+from test_ces.settings import BASE_DIR
 
-battery = 0
+
 NO_OF_DAYS = 7
 SITE_WITH_BATTERY_ID = (6, 166, 193, 192, 194, 210, 211, 212, 219, 220, 218, 217, 216, 215, 214, 213, 209, 208, 224,
                         226, 227, 228, 229, 230, 231, 232, 233, 234, 221, 222)
-
+SITEWHERE_URL = "http://52.32.19.136:9080/sitewhere/api/"
 FILE_DATA = []
+
 
 def process_solar_data(data_obj, solar_capacity):
     end_data = data_obj[0].get("measurements", {}).get("Solar_EnergyCnt", 0)
@@ -68,7 +69,7 @@ def generate_xlsx(sol_data, utilization_data, efficieny_data, site_data):
             worksheet.write(row, col + 2, e_data.get("battery_efficiency") if e_data.get("battery_efficiency", 0) != 0 else 'NA', cell_format)
             row += 1
     except:
-        print "File Saving Failed"
+        pass
 
     total_rating_sheet = workbook.add_worksheet('Total Ranking')
     total_rating_sheet.set_column(0, 15, 25)
@@ -112,14 +113,14 @@ def generate_xlsx(sol_data, utilization_data, efficieny_data, site_data):
             total_rating_sheet.write(row, col + 15, data.get('site_name'), cell_format)
             row += 1
     except:
-        print "File Saving Failed 10-13"
+        pass
 
     workbook.close()
 
     return file_name
 
 
-def generate_data():
+def generate_data(generate_file):
 
     data_available = False
     with open(os.path.join(BASE_DIR, 'rank', "ranking_data.json")) as f:
@@ -148,7 +149,6 @@ def generate_data():
 
         get_operational_site = "SELECT * FROM micro_proddb.operationalsite where sitewhere_tenant IS NOT NULL AND ID IN " + str(SITE_WITH_BATTERY_ID) + ";"
 
-        # try:
         cursor.execute(get_operational_site)
         operational_sites = cursor.fetchall()
         SITE_DATA = []
@@ -190,13 +190,8 @@ def generate_data():
                        "site_id": grid[8]
                    }
 
-                   if grid[1] == "28bd9fd1-22e0-4603-bcaf-4a64b17d84be":
-                       grid_data["assignment_id"] = "e7cd7630-4823-447f-9c9a-1ac9fe0d25b2"
-
-
-#                   if grid_data.get("assignment_id") and site_obj.get("tenant_name") and (site_obj.get("site_name") == "Navapada" or site_obj.get("site_name") ==  "CG Hatt"):
                    if grid_data.get("assignment_id") and site_obj.get("tenant_name"):
-                       url = "http://52.32.19.136:9080/sitewhere/api/assignments/" + grid_data.get("assignment_id") + \
+                       url = SITEWHERE_URL + "assignments/" + grid_data.get("assignment_id") + \
                              "/measurements?page=1&pageSize=10000&startDate=" + end_date + "&endDate=" + current_date
 
                        headers = {"X-SiteWhere-Tenant": site_obj.get("tenant_name"), 'content-type': 'application/json'}
@@ -257,6 +252,8 @@ def generate_data():
 
         db.close()
 
-    file_name = generate_xlsx(solar_generation_score_list, battery_utilization_list, battery_efficiency_list, SITE_DATA)
-
-    return file_name
+    if generate_file:
+        file_name = generate_xlsx(solar_generation_score_list, battery_utilization_list, battery_efficiency_list, SITE_DATA)
+        return file_name
+    else:
+        return solar_generation_score_list, battery_utilization_list, battery_efficiency_list, SITE_DATA

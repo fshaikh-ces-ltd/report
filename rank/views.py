@@ -1,38 +1,36 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.shortcuts import render
-
-# Create your views here.
 import json
-
-from django.http import (
-    HttpResponse,
-    HttpResponseBadRequest,
-    HttpResponseRedirect
-)
+import os
 import StringIO
+
+from django.http import HttpResponse
+
 from rank.utils import generate_data
 from test_ces.settings import BASE_DIR
-import os
 
 
-battery = 0
-NO_OF_DAYS = 7
-SITE_WITH_BATTERY_ID = (6, 166, 193, 192, 194, 210, 211, 212, 219, 220, 218, 217, 216, 215, 214, 213, 209, 208, 224,
-                        226, 227, 228, 229, 230, 231, 232, 233, 234, 221, 222)
-
-FILE_DATA = []
-
-
-def quotation(request):
+def rank(request):
     if request.method == "GET":
-        file_name = generate_data()
+        file_name = generate_data(True)
         excel = open(os.path.join(BASE_DIR, 'report_data', file_name), "rb")
         output = StringIO.StringIO(excel.read())
         out_content = output.getvalue()
         output.close()
         response = HttpResponse(out_content,
                                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=Report.xlsx'
+        response['Content-Disposition'] = 'attachment; filename=' + file_name
         return response
+
+
+def rank_data(request):
+    if request.method == "GET":
+        solar_generation_score_list, battery_utilization_list, battery_efficiency_list, SITE_DATA = generate_data(False)
+        data = {
+            "solar_generation_score_list": solar_generation_score_list,
+            "battery_utilization_score_list": battery_utilization_list,
+            "battery_efficiency_score_list": battery_efficiency_list,
+            "site_score_data": SITE_DATA
+        }
+        return HttpResponse(json.dumps(data), content_type="application/json")
