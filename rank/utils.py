@@ -13,7 +13,8 @@ from test_ces.settings import BASE_DIR
 
 NO_OF_DAYS = 7
 SITE_WITH_BATTERY_ID = (6, 166, 193, 192, 194, 210, 211, 212, 219, 220, 218, 217, 216, 215, 214, 213, 209, 208, 224,
-                        226, 227, 228, 229, 230, 231, 232, 233, 234, 221, 222)
+                        226, 227, 228, 229, 230, 231, 232, 233, 234, 221, 222, 235)
+
 SITEWHERE_URL = "http://52.32.19.136:9080/sitewhere/api/"
 FILE_DATA = []
 
@@ -72,7 +73,7 @@ def generate_xlsx(sol_data, utilization_data, efficieny_data, site_data):
         pass
 
     total_rating_sheet = workbook.add_worksheet('Total Ranking')
-    total_rating_sheet.set_column(0, 15, 25)
+    total_rating_sheet.set_column(0, 16, 25)
 
     total_rating_sheet.write('A1', 'Solar Gen Score', bold)
     total_rating_sheet.write('B1', 'Gen Rank', bold)
@@ -90,6 +91,7 @@ def generate_xlsx(sol_data, utilization_data, efficieny_data, site_data):
     total_rating_sheet.write('N1', 'Total Score', bold)
     total_rating_sheet.write('O1', 'Rank', bold)
     total_rating_sheet.write('P1', 'Site Name', bold)
+    total_rating_sheet.write('Q1', 'Company Name', bold)
     row = 1
     col = 0
 
@@ -111,6 +113,7 @@ def generate_xlsx(sol_data, utilization_data, efficieny_data, site_data):
             total_rating_sheet.write(row, col + 13, data.get('total_score'), cell_format)
             total_rating_sheet.write(row, col + 14, row, cell_format)
             total_rating_sheet.write(row, col + 15, data.get('site_name'), cell_format)
+            total_rating_sheet.write(row, col + 16, data.get('company_name'), cell_format)
             row += 1
     except:
         pass
@@ -163,8 +166,20 @@ def generate_data(generate_file):
            "battery_capacity" : site[27],
            "solar_generation_score": 0,
            "battery_utilization": 0,
-           "battery_efficiency": 0
+           "battery_efficiency": 0,
+           "normalized_solar_generation_score": 0,
+           "normalized_battery_efficiency": 0,
+           "normalized_battery_utilization": 0
            }
+
+           if site[20]:
+               developer_query = "SELECT * FROM micro_proddb.users where ID = " + str(site[20]) + ";"
+
+               cursor.execute(developer_query)
+               site_developer = cursor.fetchall()
+               site_obj["company_name"] = site_developer[0][4]
+           else:
+               site_obj["company_name"] = "SELCO Foundation"
 
            grid_assigned = "SELECT GRID_LIST FROM micro_proddb.microcluster_grid_list Where MICROCLUSTER = " \
                            + str(site_obj.get("micro_cluster")) + ";"
