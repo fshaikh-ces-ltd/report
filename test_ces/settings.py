@@ -87,6 +87,7 @@ DATABASES = {
 }
 
 #Local Database Setting
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
